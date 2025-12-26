@@ -181,7 +181,11 @@ After running the seed script, you can login with:
 | Admin | admin@company.com | admin123 |
 | HR | hr@company.com | hr123 |
 | Manager | manager@company.com | manager123 |
-| Employee | employee@company.com | employee123 |
+| Employee (Rahul) | rahul.sharma@company.com | employee123 |
+| Employee (Priya) | priya.patel@company.com | employee123 |
+| Employee (Amit) | amit.singh@company.com | employee123 |
+| Employee (Sneha) | sneha.gupta@company.com | employee123 |
+| Employee (Vikash) | vikash.kumar@company.com | employee123 |
 
 ### API Endpoints
 
