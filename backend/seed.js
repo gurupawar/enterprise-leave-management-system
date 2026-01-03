@@ -26,8 +26,8 @@ const seedData = async () => {
 
     // Create real employees
     const admin = await User.create({
-      email: "admin@company.com",
-      password: "admin123",
+      email: "admin@backtick.com",
+      password: "admin@123",
       firstName: "System",
       lastName: "Admin",
       role: "ADMIN",
@@ -37,8 +37,8 @@ const seedData = async () => {
     });
 
     const hr = await User.create({
-      email: "hr@company.com",
-      password: "hr123",
+      email: "hr@backtick.com",
+      password: "hr@123",
       firstName: "HR",
       lastName: "Manager",
       role: "HR",
@@ -48,8 +48,8 @@ const seedData = async () => {
     });
 
     const manager = await User.create({
-      email: "manager@company.com",
-      password: "manager123",
+      email: "manager@backtick.com",
+      password: "manager@123",
       firstName: "Department",
       lastName: "Manager",
       role: "MANAGER",
@@ -59,10 +59,10 @@ const seedData = async () => {
     });
 
     const employee1 = await User.create({
-      email: "rahul.sharma@company.com",
+      email: "gurusheshp@gmail.com",
       password: "employee123",
-      firstName: "Rahul",
-      lastName: "Sharma",
+      firstName: "Gurushesh",
+      lastName: "Pawar",
       role: "EMPLOYEE",
       department: "Engineering",
       managerId: manager._id,
@@ -71,7 +71,7 @@ const seedData = async () => {
     });
 
     const employee2 = await User.create({
-      email: "priya.patel@company.com",
+      email: "priya.patel@backtick.com",
       password: "employee123",
       firstName: "Priya",
       lastName: "Patel",
@@ -83,9 +83,9 @@ const seedData = async () => {
     });
 
     const employee3 = await User.create({
-      email: "amit.singh@company.com",
+      email: "rahul.singh@backtick.com",
       password: "employee123",
-      firstName: "Amit",
+      firstName: "Rahul",
       lastName: "Singh",
       role: "EMPLOYEE",
       department: "Marketing",
@@ -95,7 +95,7 @@ const seedData = async () => {
     });
 
     const employee4 = await User.create({
-      email: "sneha.gupta@company.com",
+      email: "sneha.gupta@backtick.com",
       password: "employee123",
       firstName: "Sneha",
       lastName: "Gupta",
@@ -107,7 +107,7 @@ const seedData = async () => {
     });
 
     const employee5 = await User.create({
-      email: "vikash.kumar@company.com",
+      email: "vikash.kumar@backtick.com",
       password: "employee123",
       firstName: "Vikash",
       lastName: "Kumar",
@@ -370,15 +370,15 @@ const seedData = async () => {
 
     console.log("Company employee data seeded successfully!");
     console.log("\nLogin Credentials:");
-    console.log("Admin: admin@company.com / admin123");
-    console.log("HR: hr@company.com / hr123");
-    console.log("Manager: manager@company.com / manager123");
+    console.log("Admin: admin@backtick.com / admin123");
+    console.log("HR: hr@backtick.com / hr123");
+    console.log("Manager: manager@backtick.com / manager123");
     console.log("\nEmployee Credentials:");
-    console.log("Rahul Sharma: rahul.sharma@company.com / employee123");
-    console.log("Priya Patel: priya.patel@company.com / employee123");
-    console.log("Amit Singh: amit.singh@company.com / employee123");
-    console.log("Sneha Gupta: sneha.gupta@company.com / employee123");
-    console.log("Vikash Kumar: vikash.kumar@company.com / employee123");
+    console.log("Rahul Sharma: rahul.sharma@backtick.com / employee123");
+    console.log("Priya Patel: priya.patel@backtick.com / employee123");
+    console.log("Amit Singh: amit.singh@backtick.com / employee123");
+    console.log("Sneha Gupta: sneha.gupta@backtick.com / employee123");
+    console.log("Vikash Kumar: vikash.kumar@backtick.com / employee123");
 
     process.exit(0);
   } catch (error) {

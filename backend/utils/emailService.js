@@ -1,23 +1,23 @@
-const nodemailer = require('nodemailer');
-const User = require('../models/User');
+const nodemailer = require("nodemailer");
+const User = require("../models/User");
 
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  host: process.env.SMTP_HOST || "smtp.gmail.com",
   port: process.env.SMTP_PORT || 587,
   secure: false,
   auth: {
     user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
+    pass: process.env.SMTP_PASS,
   },
   tls: {
-    rejectUnauthorized: false
-  }
+    rejectUnauthorized: false,
+  },
 });
 
 const sendHolidayNotification = async (employees, holiday) => {
-  const emailPromises = employees.map(employee => {
+  const emailPromises = employees.map((employee) => {
     const mailOptions = {
-      from: process.env.SMTP_FROM || 'noreply@company.com',
+      from: process.env.SMTP_FROM || "noreply@backtick.com",
       to: employee.email,
       subject: `Upcoming Holiday: ${holiday.name}`,
       html: `
@@ -25,50 +25,60 @@ const sendHolidayNotification = async (employees, holiday) => {
           <h2 style="color: #333;">🎉 Upcoming Holiday Notification</h2>
           <p>Dear ${employee.name},</p>
           <p>We hope this message finds you well. We wanted to remind you about an upcoming holiday:</p>
-          
+
           <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="color: #007bff; margin: 0 0 10px 0;">${holiday.name}</h3>
-            <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date(holiday.date).toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
+            <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date(
+              holiday.date
+            ).toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
             })}</p>
             <p style="margin: 5px 0;"><strong>Type:</strong> ${holiday.type}</p>
-            ${holiday.description ? `<p style="margin: 5px 0;"><strong>Description:</strong> ${holiday.description}</p>` : ''}
+            ${
+              holiday.description
+                ? `<p style="margin: 5px 0;"><strong>Description:</strong> ${holiday.description}</p>`
+                : ""
+            }
           </div>
-          
+
           <p>Please plan your work accordingly and enjoy the holiday!</p>
-          
+
           <p>Best regards,<br>HR Team</p>
         </div>
-      `
+      `,
     };
-    
+
     return transporter.sendMail(mailOptions);
   });
 
   try {
     await Promise.all(emailPromises);
-    console.log(`Holiday notification sent to ${employees.length} employees for ${holiday.name}`);
+    console.log(
+      `Holiday notification sent to ${employees.length} employees for ${holiday.name}`
+    );
   } catch (error) {
-    console.error('Error sending holiday notifications:', error);
+    console.error("Error sending holiday notifications:", error);
   }
 };
 
 const sendLeaveApplicationNotification = async (leaveRequest) => {
   try {
-    const employee = await User.findById(leaveRequest.userId).populate('managerId');
+    const employee = await User.findById(leaveRequest.userId).populate(
+      "managerId"
+    );
     const manager = employee.managerId;
-    const hrUsers = await User.find({ role: 'HR' });
-    
+    const hrUsers = await User.find({ role: "HR" });
+
     const recipients = [];
     if (manager) recipients.push(manager);
     recipients.push(...hrUsers);
-    
-    const emailPromises = recipients.map(recipient => {
+
+    const emailPromises = recipients.map((recipient) => {
       const mailOptions = {
-        from: process.env.SMTP_FROM || 'noreply@company.com',
+        from: process.env.SMTP_FROM || "noreply@backtick.com",
         to: recipient.email,
         subject: `Leave Application - ${employee.firstName} ${employee.lastName}`,
         html: `
@@ -76,41 +86,57 @@ const sendLeaveApplicationNotification = async (leaveRequest) => {
             <h2 style="color: #333;">📋 New Leave Application</h2>
             <p>Dear ${recipient.firstName},</p>
             <p>A new leave application has been submitted and requires your approval:</p>
-            
+
             <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <h3 style="color: #007bff; margin: 0 0 15px 0;">Leave Details</h3>
-              <p style="margin: 5px 0;"><strong>Employee:</strong> ${employee.firstName} ${employee.lastName}</p>
-              <p style="margin: 5px 0;"><strong>Leave Type:</strong> ${leaveRequest.leaveTypeId?.name || 'N/A'}</p>
-              <p style="margin: 5px 0;"><strong>Start Date:</strong> ${new Date(leaveRequest.startDate).toLocaleDateString()}</p>
-              <p style="margin: 5px 0;"><strong>End Date:</strong> ${new Date(leaveRequest.endDate).toLocaleDateString()}</p>
-              <p style="margin: 5px 0;"><strong>Duration:</strong> ${leaveRequest.days} day(s)</p>
-              <p style="margin: 5px 0;"><strong>Reason:</strong> ${leaveRequest.reason}</p>
+              <p style="margin: 5px 0;"><strong>Employee:</strong> ${
+                employee.firstName
+              } ${employee.lastName}</p>
+              <p style="margin: 5px 0;"><strong>Leave Type:</strong> ${
+                leaveRequest.leaveTypeId?.name || "N/A"
+              }</p>
+              <p style="margin: 5px 0;"><strong>Start Date:</strong> ${new Date(
+                leaveRequest.startDate
+              ).toLocaleDateString()}</p>
+              <p style="margin: 5px 0;"><strong>End Date:</strong> ${new Date(
+                leaveRequest.endDate
+              ).toLocaleDateString()}</p>
+              <p style="margin: 5px 0;"><strong>Duration:</strong> ${
+                leaveRequest.days
+              } day(s)</p>
+              <p style="margin: 5px 0;"><strong>Reason:</strong> ${
+                leaveRequest.reason
+              }</p>
             </div>
-            
+
             <p>Please review and approve this leave application at your earliest convenience.</p>
             <p>Best regards,<br>HR Team</p>
           </div>
-        `
+        `,
       };
       return transporter.sendMail(mailOptions);
     });
-    
+
     await Promise.all(emailPromises);
-    console.log(`Leave application notification sent for ${employee.firstName} ${employee.lastName}`);
+    console.log(
+      `Leave application notification sent for ${employee.firstName} ${employee.lastName}`
+    );
   } catch (error) {
-    console.error('Error sending leave application notification:', error);
+    console.error("Error sending leave application notification:", error);
   }
 };
 
 const sendLeaveReminderNotification = async (leaveRequest) => {
   try {
-    const employee = await User.findById(leaveRequest.userId).populate('managerId');
+    const employee = await User.findById(leaveRequest.userId).populate(
+      "managerId"
+    );
     const manager = employee.managerId;
-    
+
     if (!manager) return;
-    
+
     const mailOptions = {
-      from: process.env.SMTP_FROM || 'noreply@company.com',
+      from: process.env.SMTP_FROM || "noreply@backtick.com",
       to: manager.email,
       subject: `URGENT: Leave Approval Reminder - ${employee.firstName} ${employee.lastName}`,
       html: `
@@ -118,161 +144,224 @@ const sendLeaveReminderNotification = async (leaveRequest) => {
           <h2 style="color: #dc3545;">⚠️ URGENT: Leave Approval Reminder</h2>
           <p>Dear ${manager.firstName},</p>
           <p>This is a reminder that the following leave application is still pending your approval and the leave starts tomorrow:</p>
-          
+
           <div style="background-color: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
             <h3 style="color: #856404; margin: 0 0 15px 0;">Pending Leave Application</h3>
-            <p style="margin: 5px 0;"><strong>Employee:</strong> ${employee.firstName} ${employee.lastName}</p>
-            <p style="margin: 5px 0;"><strong>Leave Type:</strong> ${leaveRequest.leaveTypeId?.name || 'N/A'}</p>
-            <p style="margin: 5px 0;"><strong>Start Date:</strong> ${new Date(leaveRequest.startDate).toLocaleDateString()}</p>
-            <p style="margin: 5px 0;"><strong>End Date:</strong> ${new Date(leaveRequest.endDate).toLocaleDateString()}</p>
-            <p style="margin: 5px 0;"><strong>Duration:</strong> ${leaveRequest.days} day(s)</p>
-            <p style="margin: 5px 0;"><strong>Reason:</strong> ${leaveRequest.reason}</p>
+            <p style="margin: 5px 0;"><strong>Employee:</strong> ${
+              employee.firstName
+            } ${employee.lastName}</p>
+            <p style="margin: 5px 0;"><strong>Leave Type:</strong> ${
+              leaveRequest.leaveTypeId?.name || "N/A"
+            }</p>
+            <p style="margin: 5px 0;"><strong>Start Date:</strong> ${new Date(
+              leaveRequest.startDate
+            ).toLocaleDateString()}</p>
+            <p style="margin: 5px 0;"><strong>End Date:</strong> ${new Date(
+              leaveRequest.endDate
+            ).toLocaleDateString()}</p>
+            <p style="margin: 5px 0;"><strong>Duration:</strong> ${
+              leaveRequest.days
+            } day(s)</p>
+            <p style="margin: 5px 0;"><strong>Reason:</strong> ${
+              leaveRequest.reason
+            }</p>
           </div>
-          
+
           <p style="color: #dc3545; font-weight: bold;">Please approve or reject this application immediately as the leave starts tomorrow.</p>
           <p>Best regards,<br>HR Team</p>
         </div>
-      `
+      `,
     };
-    
+
     await transporter.sendMail(mailOptions);
-    console.log(`Leave reminder sent to manager for ${employee.firstName} ${employee.lastName}`);
+    console.log(
+      `Leave reminder sent to manager for ${employee.firstName} ${employee.lastName}`
+    );
   } catch (error) {
-    console.error('Error sending leave reminder notification:', error);
+    console.error("Error sending leave reminder notification:", error);
   }
 };
 
 const sendHalfDayLOPNotification = async (user, attendance) => {
   try {
     const mailOptions = {
-      from: process.env.SMTP_FROM || 'noreply@company.com',
+      from: process.env.SMTP_FROM || "noreply@backtick.com",
       to: user.email,
-      subject: 'Half Day LOP - Insufficient Working Hours',
+      subject: "Half Day LOP - Insufficient Working Hours",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #dc3545;">⚠️ Half Day LOP Notice</h2>
           <p>Dear ${user.firstName},</p>
           <p>Your attendance for today has been marked as Half Day LOP due to insufficient working hours:</p>
-          
+
           <div style="background-color: #f8d7da; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc3545;">
             <h3 style="color: #721c24; margin: 0 0 15px 0;">Attendance Details</h3>
-            <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date(attendance.date).toLocaleDateString()}</p>
-            <p style="margin: 5px 0;"><strong>Check In:</strong> ${new Date(attendance.checkIn).toLocaleTimeString()}</p>
-            <p style="margin: 5px 0;"><strong>Check Out:</strong> ${new Date(attendance.checkOut).toLocaleTimeString()}</p>
-            <p style="margin: 5px 0;"><strong>Total Hours:</strong> ${attendance.totalHours} hours</p>
+            <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date(
+              attendance.date
+            ).toLocaleDateString()}</p>
+            <p style="margin: 5px 0;"><strong>Check In:</strong> ${new Date(
+              attendance.checkIn
+            ).toLocaleTimeString()}</p>
+            <p style="margin: 5px 0;"><strong>Check Out:</strong> ${new Date(
+              attendance.checkOut
+            ).toLocaleTimeString()}</p>
+            <p style="margin: 5px 0;"><strong>Total Hours:</strong> ${
+              attendance.totalHours
+            } hours</p>
             <p style="margin: 5px 0;"><strong>Required:</strong> Minimum 7 hours</p>
           </div>
-          
+
           <p>This will be reflected as a half day deduction in your payroll. Please ensure you complete minimum 7 hours of work daily.</p>
           <p>For any queries, please contact HR.</p>
-          
+
           <p>Best regards,<br>HR Team</p>
         </div>
-      `
+      `,
     };
-    
+
     await transporter.sendMail(mailOptions);
-    console.log(`Half day LOP notification sent to ${user.firstName} ${user.lastName}`);
+    console.log(
+      `Half day LOP notification sent to ${user.firstName} ${user.lastName}`
+    );
   } catch (error) {
-    console.error('Error sending half day LOP notification:', error);
+    console.error("Error sending half day LOP notification:", error);
   }
 };
 
-const sendLeaveApprovalNotification = async (leaveRequest, approverName, approvalType) => {
+const sendLeaveApprovalNotification = async (
+  leaveRequest,
+  approverName,
+  approvalType
+) => {
   try {
     const employee = await User.findById(leaveRequest.userId);
-    
+
     const mailOptions = {
-      from: process.env.SMTP_FROM || 'noreply@company.com',
+      from: process.env.SMTP_FROM || "noreply@backtick.com",
       to: employee.email,
-      subject: `Leave Approved - ${new Date(leaveRequest.startDate).toLocaleDateString()} to ${new Date(leaveRequest.endDate).toLocaleDateString()}`,
+      subject: `Leave Approved - ${new Date(
+        leaveRequest.startDate
+      ).toLocaleDateString()} to ${new Date(
+        leaveRequest.endDate
+      ).toLocaleDateString()}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #28a745;">✅ Leave Request Approved</h2>
           <p>Dear ${employee.firstName},</p>
           <p>Your leave request has been approved by ${approverName} (${approvalType}):</p>
-          
+
           <div style="background-color: #d4edda; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745;">
             <h3 style="color: #155724; margin: 0 0 15px 0;">Approved Leave Details</h3>
-            <p style="margin: 5px 0;"><strong>Leave Type:</strong> ${leaveRequest.leaveTypeId?.name || 'N/A'}</p>
-            <p style="margin: 5px 0;"><strong>From:</strong> ${new Date(leaveRequest.startDate).toLocaleDateString()}</p>
-            <p style="margin: 5px 0;"><strong>To:</strong> ${new Date(leaveRequest.endDate).toLocaleDateString()}</p>
-            <p style="margin: 5px 0;"><strong>Duration:</strong> ${leaveRequest.days} day(s)</p>
-            <p style="margin: 5px 0;"><strong>Status:</strong> ${leaveRequest.status.replace('_', ' ')}</p>
+            <p style="margin: 5px 0;"><strong>Leave Type:</strong> ${
+              leaveRequest.leaveTypeId?.name || "N/A"
+            }</p>
+            <p style="margin: 5px 0;"><strong>From:</strong> ${new Date(
+              leaveRequest.startDate
+            ).toLocaleDateString()}</p>
+            <p style="margin: 5px 0;"><strong>To:</strong> ${new Date(
+              leaveRequest.endDate
+            ).toLocaleDateString()}</p>
+            <p style="margin: 5px 0;"><strong>Duration:</strong> ${
+              leaveRequest.days
+            } day(s)</p>
+            <p style="margin: 5px 0;"><strong>Status:</strong> ${leaveRequest.status.replace(
+              "_",
+              " "
+            )}</p>
           </div>
-          
+
           <p>You can now proceed with your planned leave. Have a great time!</p>
           <p>Best regards,<br>HR Team</p>
         </div>
-      `
+      `,
     };
-    
+
     await transporter.sendMail(mailOptions);
-    console.log(`Leave approval notification sent to ${employee.firstName} ${employee.lastName}`);
+    console.log(
+      `Leave approval notification sent to ${employee.firstName} ${employee.lastName}`
+    );
   } catch (error) {
-    console.error('Error sending leave approval notification:', error);
+    console.error("Error sending leave approval notification:", error);
   }
 };
 
 const sendAnnouncementNotification = async (announcement, creatorName) => {
   try {
     const employees = await User.find({ isActive: true });
-    
+
     // Send emails in batches to avoid rate limiting
     const batchSize = 5;
     for (let i = 0; i < employees.length; i += batchSize) {
       const batch = employees.slice(i, i + batchSize);
-      
-      const emailPromises = batch.map(employee => {
-        const priorityColor = announcement.priority === 'High' ? '#dc3545' : 
-                             announcement.priority === 'Medium' ? '#ffc107' : '#28a745';
-        
+
+      const emailPromises = batch.map((employee) => {
+        const priorityColor =
+          announcement.priority === "High"
+            ? "#dc3545"
+            : announcement.priority === "Medium"
+            ? "#ffc107"
+            : "#28a745";
+
         const mailOptions = {
-          from: process.env.SMTP_FROM || 'noreply@company.com',
+          from: process.env.SMTP_FROM || "noreply@backtick.com",
           to: employee.email,
           subject: `[${announcement.priority} Priority] ${announcement.title}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2 style="color: ${priorityColor};">📢 New Announcement</h2>
               <p>Dear ${employee.firstName},</p>
-              
+
               <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${priorityColor};">
-                <h3 style="color: #333; margin: 0 0 15px 0;">${announcement.title}</h3>
-                <p style="margin: 10px 0; color: #666; line-height: 1.6;">${announcement.content}</p>
+                <h3 style="color: #333; margin: 0 0 15px 0;">${
+                  announcement.title
+                }</h3>
+                <p style="margin: 10px 0; color: #666; line-height: 1.6;">${
+                  announcement.content
+                }</p>
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #dee2e6;">
-                  <p style="margin: 5px 0; font-size: 14px;"><strong>Priority:</strong> <span style="color: ${priorityColor};">${announcement.priority}</span></p>
+                  <p style="margin: 5px 0; font-size: 14px;"><strong>Priority:</strong> <span style="color: ${priorityColor};">${
+            announcement.priority
+          }</span></p>
                   <p style="margin: 5px 0; font-size: 14px;"><strong>Posted by:</strong> ${creatorName}</p>
-                  ${announcement.expiryDate ? `<p style="margin: 5px 0; font-size: 14px;"><strong>Valid until:</strong> ${new Date(announcement.expiryDate).toLocaleDateString()}</p>` : ''}
+                  ${
+                    announcement.expiryDate
+                      ? `<p style="margin: 5px 0; font-size: 14px;"><strong>Valid until:</strong> ${new Date(
+                          announcement.expiryDate
+                        ).toLocaleDateString()}</p>`
+                      : ""
+                  }
                 </div>
               </div>
-              
+
               <p>Best regards,<br>Management Team</p>
             </div>
-          `
+          `,
         };
-        return transporter.sendMail(mailOptions).catch(err => {
+        return transporter.sendMail(mailOptions).catch((err) => {
           console.error(`Failed to send to ${employee.email}:`, err.message);
         });
       });
-      
+
       await Promise.all(emailPromises);
-      
+
       // Wait 2 seconds between batches to avoid rate limiting
       if (i + batchSize < employees.length) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       }
     }
-    
-    console.log(`Announcement notification sent to ${employees.length} employees`);
+
+    console.log(
+      `Announcement notification sent to ${employees.length} employees`
+    );
   } catch (error) {
-    console.error('Error sending announcement notification:', error);
+    console.error("Error sending announcement notification:", error);
   }
 };
 
 const sendBirthdayWishes = async (employee) => {
   try {
     const mailOptions = {
-      from: process.env.SMTP_FROM || 'noreply@company.com',
+      from: process.env.SMTP_FROM || "noreply@backtick.com",
       to: employee.email,
       subject: `🎉 Happy Birthday ${employee.firstName}! 🎂`,
       html: `
@@ -282,59 +371,61 @@ const sendBirthdayWishes = async (employee) => {
               <h1 style="color: white; margin: 0; font-size: 2.5em; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🎉 HAPPY BIRTHDAY! 🎉</h1>
               <div style="font-size: 4em; margin: 10px 0;">🎂</div>
             </div>
-            
+
             <div style="padding: 30px; text-align: center;">
               <h2 style="color: #333; margin: 0 0 20px 0; font-size: 1.8em;">Dear ${employee.firstName},</h2>
-              
+
               <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); color: white; padding: 25px; border-radius: 10px; margin: 20px 0;">
                 <p style="margin: 0; font-size: 1.2em; line-height: 1.6;">🌟 Today is your special day! 🌟</p>
                 <p style="margin: 15px 0 0 0; font-size: 1.1em;">We hope your birthday is filled with happiness, laughter, and wonderful memories!</p>
               </div>
-              
+
               <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 5px solid #28a745;">
                 <p style="margin: 0; color: #333; font-size: 1.1em; line-height: 1.6;">
                   🎈 On behalf of the entire team, we wish you a fantastic birthday and a year ahead filled with success, joy, and prosperity! 🎈
                 </p>
               </div>
-              
+
               <div style="margin: 30px 0; padding: 20px; background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%); border-radius: 10px;">
                 <h3 style="color: white; margin: 0 0 15px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">🎁 Birthday Wishes from Your Work Family! 🎁</h3>
                 <p style="color: white; margin: 0; font-size: 1.1em; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">May this new year of your life bring you endless opportunities and amazing adventures!</p>
               </div>
-              
+
               <div style="text-align: center; margin: 30px 0;">
                 <div style="display: inline-block; background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%); color: white; padding: 15px 30px; border-radius: 25px; font-size: 1.2em; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
                   🎊 ENJOY YOUR SPECIAL DAY! 🎊
                 </div>
               </div>
-              
+
               <div style="border-top: 2px solid #e9ecef; padding-top: 20px; margin-top: 30px;">
                 <p style="color: #666; margin: 0; font-style: italic;">With warmest birthday wishes,</p>
                 <p style="color: #333; margin: 5px 0 0 0; font-weight: bold; font-size: 1.1em;">Your Amazing Team & HR Department</p>
               </div>
             </div>
           </div>
-          
+
           <div style="text-align: center; padding: 20px; color: white;">
             <p style="margin: 0; opacity: 0.8;">🎂 Have a wonderful birthday celebration! 🎂</p>
           </div>
         </div>
-      `
+      `,
     };
-    
+
     await transporter.sendMail(mailOptions);
-    console.log(`Birthday wishes sent to ${employee.firstName} ${employee.lastName}`);
+    console.log(
+      `Birthday wishes sent to ${employee.firstName} ${employee.lastName}`
+    );
   } catch (error) {
-    console.error('Error sending birthday wishes:', error);
+    console.error("Error sending birthday wishes:", error);
   }
 };
 
-module.exports = { 
-  sendHolidayNotification, 
-  sendLeaveApplicationNotification, 
+module.exports = {
+  sendHolidayNotification,
+  sendLeaveApplicationNotification,
   sendLeaveReminderNotification,
   sendHalfDayLOPNotification,
   sendLeaveApprovalNotification,
   sendAnnouncementNotification,
-  sendBirthdayWishes
+  sendBirthdayWishes,
 };
